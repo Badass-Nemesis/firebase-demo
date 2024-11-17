@@ -132,6 +132,7 @@ To run the app locally or deploy your own version, follow these steps:
    - Make sure the `firebase.ts` file has the updated configuration with your Firebase project details and service account credentials.
 
 4. **Deploy the App**:
+   - Uncomment the last line in index.ts (exports.api).
    - Run the following command to deploy your app:
      ```bash
      npm run deploy
