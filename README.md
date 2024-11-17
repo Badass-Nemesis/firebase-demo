@@ -102,12 +102,26 @@ This project is a Node.js backend API, developed using TypeScript and Firebase. 
 
 ## 🚀 Deployment Steps
 
-To deploy your own version of this app, follow these steps:
+To run the app locally or deploy your own version, follow these steps:
 
+### Running Locally With Already Provided Credentials
+1. **Install Dependencies**:
+   - Run the following command to install all necessary dependencies:
+     ```bash
+     npm install
+     ```
+2. **Start the App**:
+   - Run the following command to start the app locally:
+     ```bash
+     npm run dev
+     ```
+   - The app should now be running at `http://localhost:3000`.
+
+### Deploying Your Own App Online
 1. **Get Your API Key**:
    - Go to the Firebase Console and create a new project.
-   - Navigate to Project Settings of the web app and copy the API key along with other fields.
-   - Update the `firebase.ts` file with your own API key and other project-specific information.
+   - Navigate to Project Settings and copy the API key.
+   - Update the `firebaseConfig` in `firebase.ts` with your own API key and other project-specific information.
 
 2. **Get Your Service Account Credentials**:
    - In the Firebase Console, go to Project Settings > Service Accounts.
@@ -124,6 +138,7 @@ To deploy your own version of this app, follow these steps:
      ```
 
 That's it! Your app should now be deployed and ready to use.
+
 
 ## 🏢 About
 This project was developed as part of an assignment for the Intellectworks backend internship. It showcases the use of Node.js, TypeScript, and Firebase to create a robust backend service with user authentication and note management functionalities.
