@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
@@ -20,8 +21,10 @@
     "@firebase/auth": "^1.8.1",
     "@firebase/database": "^1.0.10",
     "@firebase/firestore": "^4.7.5",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
     "firebase": "^11.0.2",
-    "firebase-admin": "^13.0.0"
+    "firebase-admin": "^13.0.0",
+    "helmet": "^8.0.0"
   }
 }

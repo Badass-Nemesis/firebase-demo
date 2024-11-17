@@ -1,10 +1,14 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
 import { auth, db, adminAuth } from './firebase';  
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';  // importing Firestore functions
 
 const app = express();
 app.use(express.json());  // it's a middleware to parse JSON bodies
+app.use(cors());
+app.use(helmet());
 
 // interfaces for defining types for request bodies
 interface RegisterRequestBody {
