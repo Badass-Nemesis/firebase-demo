@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
-import { auth, db, adminAuth } from './firebase';  // Ensure this path is correct for your firebase.ts
+import { auth, db, adminAuth } from './firebase';  
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
-import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';  // Import Firestore functions
+import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';  // importing Firestore functions
 
 const app = express();
-app.use(express.json());  // Middleware to parse JSON bodies
+app.use(express.json());  // it's a middleware to parse JSON bodies
 
-// Define types for request bodies
+// interfaces for defining types for request bodies
 interface RegisterRequestBody {
     email: string;
     password: string;
@@ -43,7 +43,7 @@ app.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: Res
         const user = userCredential.user;
 
         if (user) {
-            // Store user profile in Firestore using UID as document ID
+            // we are storing user profile in Firestore using UID as document ID for easy check
             await setDoc(doc(db, 'users', user.uid), {
                 uid: user.uid,
                 email: user.email,
@@ -79,7 +79,7 @@ app.put('/edit/:uid', async (req: Request<{ uid: string }, {}, EditRequestBody>,
     }
 
     try {
-        // Check if email already exists in Firebase Auth or Firestore
+        // checking if email already exists in Firebase Auth or Firestore (checking both because aisehi)
         if (email) {
             const users = await adminAuth.listUsers();
             const emailExistsInAuth = users.users.some(user => user.email === email && user.uid !== uid);
@@ -100,7 +100,7 @@ app.put('/edit/:uid', async (req: Request<{ uid: string }, {}, EditRequestBody>,
             }
         }
 
-        // Update Firebase Authentication if email or password is provided
+        // updating Firebase Authentication if email or password is provided (because auth has email and pass fields only)
         if (email || password) {
             const userUpdate: { email?: string, password?: string, displayName?: string } = {};
             if (email) {
@@ -115,7 +115,7 @@ app.put('/edit/:uid', async (req: Request<{ uid: string }, {}, EditRequestBody>,
             await adminAuth.updateUser(uid, userUpdate);
         }
 
-        // Update Firestore
+        // updating Firestore/db
         const userRef = doc(db, 'users', uid);
         const userDoc = {
             ...(name && { name }),
@@ -142,7 +142,7 @@ app.delete('/delete/:uid', async (req: Request<{ uid: string }, {}, DeleteReques
     }
 
     try {
-        // Retrieve the user's email from Firestore using the UID
+        // retrieving the user's email from Firestore using it's UID
         const userRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userRef);
 
@@ -153,23 +153,23 @@ app.delete('/delete/:uid', async (req: Request<{ uid: string }, {}, DeleteReques
 
         const userEmail = userDoc.data().email;
 
-        // Authenticate user with email and password
+        // authenticating user with email and password
         const userCredential = await signInWithEmailAndPassword(auth, userEmail, password);
         const user = userCredential.user;
 
-        // Verify the authenticated user's UID matches the provided UID
+        // verifying if the authenticated user's UID matches the provided UID
         if (user.uid !== uid) {
             res.status(401).json({ message: 'UID and password do not match' });
             return;
         }
 
-        // Delete user from Firebase Authentication
+        // deleting user from Firebase Authentication
         await adminAuth.deleteUser(uid);
 
-        // Delete user document from Firestore
+        // deleting user document from Firestore/db
         await deleteDoc(userRef);
 
-        // Delete user's notes from Firestore
+        // deleting the user's notes from Firestore
         const notesRef = collection(db, 'notes');
         const q = query(notesRef, where('uid', '==', uid));
         const querySnapshot = await getDocs(q);
@@ -195,7 +195,7 @@ app.post('/notes/save', async (req: Request<{}, {}, SaveNoteRequestBody>, res: R
     }
 
     try {
-        // Verify that the UID exists in the users collection
+        // verifying that the UID exists in the users collection
         const userRef = doc(db, 'users', uid);
         const userDoc = await getDoc(userRef);
 
@@ -204,10 +204,10 @@ app.post('/notes/save', async (req: Request<{}, {}, SaveNoteRequestBody>, res: R
             return;
         }
 
-        // Generate timestamp on the server side
+        // generating timestamp on the server side (this is in I believe ISO86001 or something like that. UTC timing)
         const timestamp = new Date().toISOString();
 
-        // Save note in Firestore
+        // saving the note in Firestore/db
         await addDoc(collection(db, 'notes'), {
             uid: uid,
             title: title,
@@ -232,12 +232,12 @@ app.get('/notes/:uid', async (req: Request<{ uid: string }>, res: Response): Pro
     }
 
     try {
-        // Query Firestore for notes matching the user's UID
+        // simple query to Firestore/db for notes matching the user's UID
         const notesRef = collection(db, 'notes');
         const q = query(notesRef, where('uid', '==', uid));
         const querySnapshot = await getDocs(q);
 
-        // Map the query results to an array of notes
+        // mapping the query results to an array of notes to give it to the user
         const notes = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -250,7 +250,7 @@ app.get('/notes/:uid', async (req: Request<{ uid: string }>, res: Response): Pro
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // why am I even using process.env, all my secrets/api keys are public already
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
