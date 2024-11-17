@@ -3,13 +3,25 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.ts",
+    "dev": "nodemon --exec ts-node index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/express": "^5.0.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@firebase/auth": "^1.8.1",
+    "@firebase/database": "^1.0.10",
+    "@firebase/firestore": "^4.7.5",
+    "express": "^4.21.1",
+    "firebase": "^11.0.2",
+    "firebase-admin": "^13.0.0"
   }
 }
