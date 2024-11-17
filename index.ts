@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { auth, db, adminAuth } from './firebase';  // Ensure this path is correct for your firebase.ts
-import { createUserWithEmailAndPassword, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
-import { collection, addDoc, doc, setDoc, updateDoc } from 'firebase/firestore';  // Import Firestore functions
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
+import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';  // Import Firestore functions
 
 const app = express();
 app.use(express.json());  // Middleware to parse JSON bodies
@@ -81,6 +81,51 @@ app.put('/edit/:uid', async (req: Request, res: Response): Promise<void> => {
         await updateDoc(userRef, userDoc);
 
         res.status(200).json({ message: 'User information updated successfully' });
+    } catch (error: unknown) {
+        const errorMessage = (error as { message: string }).message;
+        res.status(500).json({ message: errorMessage });
+    }
+});
+
+// User Delete API
+app.delete('/delete/:uid', async (req: Request, res: Response): Promise<void> => {
+    const { uid } = req.params;
+    const { password } = req.body;
+
+    if (!uid || !password) {
+        res.status(400).json({ message: 'User ID and password are required' });
+        return;
+    }
+
+    try {
+        // Retrieve the user's email from Firestore using the UID
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        const userEmail = userDoc.data().email;
+
+        // Authenticate user with email and password
+        const userCredential = await signInWithEmailAndPassword(auth, userEmail, password);
+        const user = userCredential.user;
+
+        // Verify the authenticated user's UID matches the provided UID
+        if (user.uid !== uid) {
+            res.status(401).json({ message: 'UID and password do not match' });
+            return;
+        }
+
+        // Delete user from Firebase Authentication
+        await adminAuth.deleteUser(uid);
+
+        // Delete user document from Firestore
+        await deleteDoc(userRef);
+
+        res.status(200).json({ message: 'User deleted successfully' });
     } catch (error: unknown) {
         const errorMessage = (error as { message: string }).message;
         res.status(500).json({ message: errorMessage });
