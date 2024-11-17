@@ -6,8 +6,31 @@ import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc, query, w
 const app = express();
 app.use(express.json());  // Middleware to parse JSON bodies
 
+// Define types for request bodies
+interface RegisterRequestBody {
+    email: string;
+    password: string;
+    name: string;
+}
+
+interface EditRequestBody {
+    name?: string;
+    email?: string;
+    password?: string;
+}
+
+interface DeleteRequestBody {
+    password: string;
+}
+
+interface SaveNoteRequestBody {
+    uid: string;
+    title: string;
+    content: string;
+}
+
 // User registration
-app.post('/register', async (req: Request, res: Response): Promise<void> => {
+app.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: Response): Promise<void> => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
@@ -46,7 +69,7 @@ app.post('/register', async (req: Request, res: Response): Promise<void> => {
 });
 
 // User Edit API
-app.put('/edit/:uid', async (req: Request, res: Response): Promise<void> => {
+app.put('/edit/:uid', async (req: Request<{ uid: string }, {}, EditRequestBody>, res: Response): Promise<void> => {
     const { uid } = req.params;
     const { name, email, password } = req.body;
 
@@ -56,6 +79,27 @@ app.put('/edit/:uid', async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
+        // Check if email already exists in Firebase Auth or Firestore
+        if (email) {
+            const users = await adminAuth.listUsers();
+            const emailExistsInAuth = users.users.some(user => user.email === email && user.uid !== uid);
+
+            if (emailExistsInAuth) {
+                res.status(409).json({ message: 'Email already exists in authentication. Give different email.' });
+                return;
+            }
+
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('email', '==', email));
+            const querySnapshot = await getDocs(q);
+            const emailExistsInFirestore = querySnapshot.docs.some(doc => doc.data().email === email && doc.id !== uid);
+
+            if (emailExistsInFirestore) {
+                res.status(409).json({ message: 'Email already exists in users collection. Give different email.' });
+                return;
+            }
+        }
+
         // Update Firebase Authentication if email or password is provided
         if (email || password) {
             const userUpdate: { email?: string, password?: string, displayName?: string } = {};
@@ -88,7 +132,7 @@ app.put('/edit/:uid', async (req: Request, res: Response): Promise<void> => {
 });
 
 // User Delete API
-app.delete('/delete/:uid', async (req: Request, res: Response): Promise<void> => {
+app.delete('/delete/:uid', async (req: Request<{ uid: string }, {}, DeleteRequestBody>, res: Response): Promise<void> => {
     const { uid } = req.params;
     const { password } = req.body;
 
@@ -125,7 +169,16 @@ app.delete('/delete/:uid', async (req: Request, res: Response): Promise<void> =>
         // Delete user document from Firestore
         await deleteDoc(userRef);
 
-        res.status(200).json({ message: 'User deleted successfully' });
+        // Delete user's notes from Firestore
+        const notesRef = collection(db, 'notes');
+        const q = query(notesRef, where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+
+        for (const doc of querySnapshot.docs) {
+            await deleteDoc(doc.ref);
+        }
+
+        res.status(200).json({ message: 'User and corresponding notes deleted successfully' });
     } catch (error: unknown) {
         const errorMessage = (error as { message: string }).message;
         res.status(500).json({ message: errorMessage });
@@ -133,7 +186,7 @@ app.delete('/delete/:uid', async (req: Request, res: Response): Promise<void> =>
 });
 
 // Save Notes API
-app.post('/notes/save', async (req: Request, res: Response): Promise<void> => {
+app.post('/notes/save', async (req: Request<{}, {}, SaveNoteRequestBody>, res: Response): Promise<void> => {
     const { uid, title, content } = req.body;
 
     if (!uid || !title || !content) {
@@ -170,7 +223,7 @@ app.post('/notes/save', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Get Notes API
-app.get('/notes/:uid', async (req: Request, res: Response): Promise<void> => {
+app.get('/notes/:uid', async (req: Request<{ uid: string }>, res: Response): Promise<void> => {
     const { uid } = req.params;
 
     if (!uid) {
