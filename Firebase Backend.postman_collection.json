@@ -1,0 +1,163 @@
+{
+	"info": {
+		"_postman_id": "a5731f2e-ddb1-4f95-917b-6c599bbb195f",
+		"name": "Firebase Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25135020"
+	},
+	"item": [
+		{
+			"name": "User Registration",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Edit",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Pope Dear\",\n    \"email\": \"user@lalala.com\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/edit/:uid",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"edit",
+						":uid"
+					],
+					"variable": [
+						{
+							"key": "uid",
+							"value": "rK9LFW3uZvdQ6dyUTkOU52MGcTs2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"password\": \"password123\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/delete/:uid",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"delete",
+						":uid"
+					],
+					"variable": [
+						{
+							"key": "uid",
+							"value": "rK9LFW3uZvdQ6dyUTkOU52MGcTs2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Save Note",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"uid\": \"rK9LFW3uZvdQ6dyUTkOU52MGcTs2\",\n  \"title\": \"Note Title\",\n  \"content\": \"This is the content of the note.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/notes/save",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"notes",
+						"save"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Notes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/notes/:uid",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"notes",
+						":uid"
+					],
+					"variable": [
+						{
+							"key": "uid",
+							"value": "rK9LFW3uZvdQ6dyUTkOU52MGcTs2"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
