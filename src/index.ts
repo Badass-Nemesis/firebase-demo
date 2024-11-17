@@ -261,4 +261,4 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-exports.api = functions.https.onRequest(app);
+// exports.api = functions.https.onRequest(app);
