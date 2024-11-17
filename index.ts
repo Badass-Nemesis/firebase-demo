@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { auth, db, adminAuth } from './firebase';  // Ensure this path is correct for your firebase.ts
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
-import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';  // Import Firestore functions
+import { collection, addDoc, doc, setDoc, updateDoc, getDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';  // Import Firestore functions
 
 const app = express();
 app.use(express.json());  // Middleware to parse JSON bodies
@@ -126,6 +126,71 @@ app.delete('/delete/:uid', async (req: Request, res: Response): Promise<void> =>
         await deleteDoc(userRef);
 
         res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error: unknown) {
+        const errorMessage = (error as { message: string }).message;
+        res.status(500).json({ message: errorMessage });
+    }
+});
+
+// Save Notes API
+app.post('/notes/save', async (req: Request, res: Response): Promise<void> => {
+    const { uid, title, content } = req.body;
+
+    if (!uid || !title || !content) {
+        res.status(400).json({ message: 'User ID, title, and content are required' });
+        return;
+    }
+
+    try {
+        // Verify that the UID exists in the users collection
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Generate timestamp on the server side
+        const timestamp = new Date().toISOString();
+
+        // Save note in Firestore
+        await addDoc(collection(db, 'notes'), {
+            uid: uid,
+            title: title,
+            content: content,
+            timestamp: timestamp,
+        });
+
+        res.status(201).json({ message: 'Note saved successfully' });
+    } catch (error: unknown) {
+        const errorMessage = (error as { message: string }).message;
+        res.status(500).json({ message: errorMessage });
+    }
+});
+
+// Get Notes API
+app.get('/notes/:uid', async (req: Request, res: Response): Promise<void> => {
+    const { uid } = req.params;
+
+    if (!uid) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+    }
+
+    try {
+        // Query Firestore for notes matching the user's UID
+        const notesRef = collection(db, 'notes');
+        const q = query(notesRef, where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+
+        // Map the query results to an array of notes
+        const notes = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        res.status(200).json(notes);
     } catch (error: unknown) {
         const errorMessage = (error as { message: string }).message;
         res.status(500).json({ message: errorMessage });
